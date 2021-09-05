@@ -9,14 +9,15 @@ import (
 )
 
 type LogModel struct {
-	Level      string    `json:"level"`
-	Timestamp  time.Time `json:"timestamp"`
-	RequestURI string    `json:"request_uri"`
-	StatusCode int       `json:"status_code"`
-	Duration   int64     `json:"duration"`
-	Message    string    `json:"message"`
-	Version    string    `json:"version"`
-	ErrorCode  string    `json:"error_code"`
+	Level      string      `json:"level"`
+	Timestamp  time.Time   `json:"timestamp"`
+	RequestURI string      `json:"request_uri"`
+	StatusCode int         `json:"status_code"`
+	Duration   int64       `json:"duration"`
+	Message    string      `json:"message"`
+	Version    string      `json:"version"`
+	ErrorCode  string      `json:"error_code"`
+	logger     *log.Logger `json:"-"`
 }
 
 type LogConfig struct {
@@ -29,8 +30,8 @@ type RhapLogger struct {
 	logger *log.Logger
 }
 
-func (*RhapLogger) getDefaultLogModel(level string) *LogModel {
-	return &LogModel{
+func (rl *RhapLogger) getDefaultLogModel(level string) LogModel {
+	return LogModel{
 		Level:      level,
 		Timestamp:  time.Now(),
 		RequestURI: "-",
@@ -39,6 +40,7 @@ func (*RhapLogger) getDefaultLogModel(level string) *LogModel {
 		Message:    "-",
 		Version:    "-",
 		ErrorCode:  "-",
+		logger:     rl.logger,
 	}
 }
 
@@ -74,8 +76,8 @@ func (rl *RhapLogger) Logger() *log.Logger {
 	return rl.logger
 }
 
-func (rl *RhapLogger) Print(model *LogModel) {
-	data, _ := json.Marshal(model)
+func (lm *LogModel) Print() {
+	data, _ := json.Marshal(lm)
 
-	rl.logger.Print(string(data))
+	lm.logger.Print(string(data))
 }
