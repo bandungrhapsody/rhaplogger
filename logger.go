@@ -1,6 +1,7 @@
-package main
+package rhaplogger
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"os"
@@ -22,11 +23,23 @@ type LogConfig struct {
 	Filename string
 	Stdout   bool
 	Prefix   string
-	Flags    int
 }
 
 type RhapLogger struct {
 	logger *log.Logger
+}
+
+func (*RhapLogger) getDefaultLogModel(level string) *LogModel {
+	return &LogModel{
+		Level:      level,
+		Timestamp:  time.Now(),
+		RequestURI: "-",
+		StatusCode: 0,
+		Duration:   0,
+		Message:    "-",
+		Version:    "-",
+		ErrorCode:  "-",
+	}
 }
 
 func NewRhapLogger(config *LogConfig) (rhapLogger *RhapLogger, err error) {
@@ -53,40 +66,16 @@ func NewRhapLogger(config *LogConfig) (rhapLogger *RhapLogger, err error) {
 		writers = append(writers, os.Stdout)
 	}
 
-	rhapLogger = &RhapLogger{logger: log.New(io.MultiWriter(writers...), config.Prefix, config.Flags)}
+	rhapLogger = &RhapLogger{logger: log.New(io.MultiWriter(writers...), config.Prefix, 0)}
 	return
 }
 
-func (*RhapLogger) NewLogInfo() *LogModel {
-	return &LogModel{
-		Level:      "INFO",
-		Timestamp:  time.Now(),
-		RequestURI: "-",
-		StatusCode: 0,
-		Duration:   0,
-		Message:    "-",
-		Version:    "-",
-		ErrorCode:  "-",
-	}
-}
-
-func (*RhapLogger) NewLogError() *LogModel {
-	return &LogModel{
-		Level:      "ERROR",
-		Timestamp:  time.Now(),
-		RequestURI: "-",
-		StatusCode: 0,
-		Duration:   0,
-		Message:    "-",
-		Version:    "-",
-		ErrorCode:  "-",
-	}
-}
-
-func (rl *RhapLogger) Logger() *log.Logger{
+func (rl *RhapLogger) Logger() *log.Logger {
 	return rl.logger
 }
 
-func main() {
-	Test()
+func (rl *RhapLogger) Print(model *LogModel) {
+	data, _ := json.Marshal(model)
+
+	rl.logger.Print(string(data))
 }
